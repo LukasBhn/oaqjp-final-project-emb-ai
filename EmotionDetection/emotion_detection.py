@@ -14,16 +14,24 @@ def emotion_detector(text_to_analyse):
     # Make a POST request to the API with the payload and headers
     response = requests.post(url, json=myobj, headers=header)
 
-    formatted_response = json.loads(response.text)
+    status_code = response.status_code
 
     result = {}
 
-    emotions = ["anger", "disgust", "fear", "joy", "sadness"]
-    for emotion in emotions:
-        result[emotion] = formatted_response["emotionPredictions"][0]["emotion"][emotion]
-    
-    dominant_emotion = max(result, key=result.get)
+    emotions = ["anger", "disgust", "fear", "joy", "sadness", "dominant_emotion"]
 
-    result["dominant_emotion"] = dominant_emotion
+    if status_code == 400:
+        for emotion in emotions:
+            result[emotion] = None
+        return result
+    else: 
+        formatted_response = json.loads(response.text)
+        
+        for emotion in emotions:
+            if emotion == "dominant_emotion":
+                dominant_emotion = max(result, key=result.get)
+                result["dominant_emotion"] = dominant_emotion
+            else:
+                result[emotion] = formatted_response["emotionPredictions"][0]["emotion"][emotion]
 
-    return result
+        return result
